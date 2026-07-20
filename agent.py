@@ -1,6 +1,6 @@
 from typing import TypedDict, List
 from langgraph.graph import StateGraph, START, END
-from shared import embed_text, collection, gemini_client
+from shared import embed_text, collection, gemini_client, call_with_retry
 import time
 
 
@@ -8,18 +8,6 @@ class AgentState(TypedDict):
     question: str
     retrieved_chunks: List[dict]
     answer: str
-
-
-def call_with_retry(func, max_retries=5, delay=5):
-    """Retry a function call if it fails, with a pause between attempts."""
-    for attempt in range(max_retries):
-        try:
-            return func()
-        except Exception as e:
-            if attempt == max_retries - 1:
-                raise  # out of retries, let the error surface
-            print(f"Attempt {attempt + 1} failed ({e}), retrying in {delay}s...")
-            time.sleep(delay)
 
 
 def retrieve(state: AgentState) -> dict:

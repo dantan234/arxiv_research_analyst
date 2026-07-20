@@ -1,11 +1,25 @@
 import os
 import chromadb
+import time
 from google import genai
 from dotenv import load_dotenv
 
 load_dotenv()
 
 gemini_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+
+
+def call_with_retry(func, max_retries=5, delay=10):
+    """Retry a function call if it fails, with a pause between attempts."""
+    for attempt in range(max_retries):
+        try:
+            return func()
+        except Exception as e:
+            if attempt == max_retries - 1:
+                raise  # out of retries, let the error surface
+            print(f"Attempt {attempt + 1} failed ({e}), retrying in {delay}s...")
+            time.sleep(delay)
+
 
 def embed_text(text):
     result = gemini_client.models.embed_content(

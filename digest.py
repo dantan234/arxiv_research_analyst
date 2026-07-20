@@ -1,7 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
-from shared import gemini_client, collection
+from shared import gemini_client, collection, call_with_retry
 from ingest import fetch_arxiv_papers, prepare_chunks, store_chunks
 
 load_dotenv()
@@ -20,9 +20,11 @@ def summarize_paper(paper: dict) -> str:
 
     Summary:"""
 
-    response = gemini_client.models.generate_content(
+    response = call_with_retry(
+        lambda: gemini_client.models.generate_content(
         model="gemini-flash-latest",
         contents=prompt
+        )
     )
     return response.text.strip()
 
