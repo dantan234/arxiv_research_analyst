@@ -1,6 +1,6 @@
 from typing import TypedDict, List
 from langgraph.graph import StateGraph, START, END
-from shared import embed_text, collection, gemini_client, call_with_retry
+from shared import embed_text, index, gemini_client, call_with_retry
 import time
 
 
@@ -14,9 +14,10 @@ def retrieve(state: AgentState) -> dict:
     question = state["question"]
     query_embedding = embed_text(question)
 
-    results = collection.query(
-        query_embeddings=[query_embedding],
-        n_results=5
+    results = index.query(
+        vector=query_embedding,
+        top_k=5,
+        include_metadata=True
     )
 
     chunks = []

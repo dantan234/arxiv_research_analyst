@@ -1,6 +1,6 @@
 import feedparser  # a library that parses arXiv's response format (called "Atom/RSS", a common feed format)
 import urllib.request
-from shared import embed_text, collection
+from shared import embed_text, collection, index
 
 
 def fetch_arxiv_papers(query="cat:cs.AI", max_results=10):
@@ -48,14 +48,17 @@ def prepare_chunks(papers):
 
 
 def store_chunks(chunks):
+    vectors_to_upsert = []
     for chunk in chunks:
         embedding = embed_text(chunk["text"])
-        collection.upsert(
-            ids=[chunk["id"]],
-            embeddings=[embedding],
-            documents=[chunk["text"]],
-            metadatas=[chunk["metadata"]]
-        )
+        metadata = dict(chunk["metadata"])
+        metadata["text"] = chunk["text"]
+        vectors_to_upsert.append({
+            "id": chunk["id"],
+            "values": embedding,
+            "metadata": metadata
+        })
+    index.upsert(vectors=vectors_to_upsert)
 
 
 if __name__ == "__main__":

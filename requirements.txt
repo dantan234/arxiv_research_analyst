@@ -1,5 +1,6 @@
 feedparser
 chromadb
+pinecone
 google-genai
 python-dotenv
 langgraph
