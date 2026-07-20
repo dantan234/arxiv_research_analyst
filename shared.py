@@ -13,7 +13,7 @@ chroma_client = chromadb.PersistentClient(path="./chroma_db")
 collection = chroma_client.get_or_create_collection(name="arxiv_papers")
 
 pinecone_client = Pinecone(api_key=os.environ["PINECONE_API_KEY"])
-# index = pinecone_client.Index("arxiv-papers")
+index = pinecone_client.Index("arxiv-papers")
 
 
 def call_with_retry(func, max_retries=5, delay=10):
