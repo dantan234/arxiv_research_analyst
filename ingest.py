@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
     # Quick sanity check: search for something and see if it finds relevant papers
     query_embedding = embed_text("agents that use tools to solve tasks")
-    results = collection.query(query_embeddings=[query_embedding], n_results=3)
+    results = index.query(query_embeddings=[query_embedding], top_k=3)
 
     for doc, meta in zip(results["documents"][0], results["metadatas"][0]):
         print(meta["title"])
