@@ -1,6 +1,7 @@
 import os
 import chromadb
 import time
+import random
 from google import genai
 from dotenv import load_dotenv
 from pinecone import Pinecone
@@ -16,16 +17,27 @@ pinecone_client = Pinecone(api_key=os.environ["PINECONE_API_KEY"])
 index = pinecone_client.Index("arxiv-papers")
 
 
-def call_with_retry(func, max_retries=5, delay=10):
-    """Retry a function call if it fails, with a pause between attempts."""
+def call_with_retry(func, max_retries=8, base_delay=10, max_delay=300):
+    """
+    Retry a function call with exponential backoff + jitter.
+    Designed for unattended jobs where waiting longer is fine,
+    as long as it eventually succeeds.
+    """
     for attempt in range(max_retries):
         try:
             return func()
         except Exception as e:
             if attempt == max_retries - 1:
-                raise  # out of retries, let the error surface
-            print(f"Attempt {attempt + 1} failed ({e}), retrying in {delay}s...")
-            time.sleep(delay)
+                raise  # out of retries, let it fail
+
+            # exponential backoff: 10s, 20s, 40s, 80s, 160s, 300s (capped), ...
+            delay = min(base_delay * (2 ** attempt), max_delay)
+            # add jitter: randomize +/- 20% so retries don't all sync up
+            jitter = delay * random.uniform(-0.2, 0.2)
+            wait_time = delay + jitter
+
+            print(f"Attempt {attempt + 1}/{max_retries} failed ({e}), retrying in {wait_time:.1f}s...")
+            time.sleep(wait_time)
 
 
 def embed_text(text):
